@@ -44,7 +44,7 @@ class Command(BaseCommand):
 
         for movie_path in paths:
             count += 1
-            logging.debug('%5d/%d: Processing `%s\'', count, count_max, movie_path)
+            logging.info('%5d/%d: Processing `%s\'', count, count_max, movie_path)
             name = os.path.basename(movie_path).replace('.', ' ')
             m = re.match(r'(.+) [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})', name)
             if m:

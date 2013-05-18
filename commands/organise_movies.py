@@ -57,7 +57,7 @@ class Command(BaseCommand):
                     if options['dry_run']:
                         logging.debug('Skipped creation of directory "%s"', season_path)
                     else:
-                        if not os.path.exists():
+                        if not os.path.exists(season_path):
                             logging.debug('Creating directory %s', season_path)
                             os.makedirs(season_path)
                         dest_file = os.path.join(season_path, name)

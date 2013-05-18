@@ -49,7 +49,7 @@ class Command(BaseCommand):
             m = re.match(r'(.+) [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})', name)
             if m:
                 logging.debug(m.groups())
-                show = m.group(1).title()
+                show = m.group(1).replace('_', ' ').title()
                 season = int(m.group(2))
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)

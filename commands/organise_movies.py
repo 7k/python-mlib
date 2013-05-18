@@ -57,8 +57,9 @@ class Command(BaseCommand):
                     if options['dry_run']:
                         logging.debug('Skipped creation of directory "%s"', season_path)
                     else:
-                        logging.debug('Creating directory %s', season_path)
-                        os.makedirs(season_path)
+                        if not os.path.exists():
+                            logging.debug('Creating directory %s', season_path)
+                            os.makedirs(season_path)
                         dest_file = os.path.join(season_path, name)
                         if options['move']:
                             os.rename(movie_path, dest_file)

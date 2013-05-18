@@ -24,6 +24,8 @@ class Command(BaseCommand):
         make_option("-d", "--dry-run", dest="dry_run", action="store_true",
                     help="Do everything except actually add the note "
                     "to the affected change."),
+        make_option("-m", "--move", dest="move", action="store_true",
+                    help="Move files instead of copying."),
     )
 
     def handle(self, *args, **options):
@@ -57,6 +59,10 @@ class Command(BaseCommand):
                     else:
                         logging.debug('Creating directory %s', season_path)
                         os.makedirs(season_path)
-                        shutil.copy(movie_path, os.path.join(season_path, name))
+                        dest_file = os.path.join(season_path, name)
+                        if options['move']:
+                            os.rename(movie_path, dest_file)
+                        else:
+                            shutil.copy(movie_path, dest_file)
                 except Exception as e:
                     logging.error(e)

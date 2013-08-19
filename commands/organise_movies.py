@@ -64,6 +64,9 @@ class Command(BaseCommand):
                         if options['move']:
                             os.rename(movie_path, dest_file)
                         else:
-                            shutil.copy(movie_path, dest_file)
+                            if os.path.exists(dest_file):
+                                logging.info('%s already exists', dest_file)
+                            else:
+                                shutil.copy(movie_path, dest_file)
                 except Exception as e:
                     logging.error(e)

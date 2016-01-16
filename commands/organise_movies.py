@@ -47,7 +47,11 @@ class Command(BaseCommand):
             logging.info('%5d/%d: Processing `%s\'', count, count_max, movie_path)
             movie_name = os.path.basename(movie_path)
             name = movie_name.replace('.', ' ')
+            dir_name = os.path.dirname(movie_path)
+            dir_name = dir_name.replace('.', ' ')
             m = re.match(r'(.+) [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})', name)
+            if not m:
+                m = re.match(r'(.+) [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})', dir_name)
             if m:
                 logging.debug(m.groups())
                 show = m.group(1).replace('_', ' ').title()

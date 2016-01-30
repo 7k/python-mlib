@@ -14,6 +14,9 @@ from . import BaseCommand, CommandError
 import mlib
 
 
+RE_SHOW = r'(.+)-? [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})'
+
+
 class Command(BaseCommand):
     args = "library_path search_dir"
     option_list = BaseCommand.option_list + (
@@ -49,12 +52,12 @@ class Command(BaseCommand):
             name = movie_name.replace('.', ' ')
             dir_name = os.path.basename(os.path.dirname(movie_path))
             dir_name = dir_name.replace('.', ' ')
-            m = re.match(r'(.+) [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})', name)
+            m = re.match(RE_SHOW, name)
             if not m:
-                m = re.match(r'(.+) [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})', dir_name)
+                m = re.match(RE_SHOW, dir_name)
             if m:
                 logging.debug(m.groups())
-                show = m.group(1).replace('_', ' ').title()
+                show = m.group(1).replace('_', ' ').rstrip().title()
                 season = int(m.group(2))
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)
@@ -66,6 +69,7 @@ class Command(BaseCommand):
                             logging.debug('Creating directory %s', season_path)
                             os.makedirs(season_path)
                         dest_file = os.path.join(season_path, movie_name)
+                        logging.debug('Destination path: %s', dest_file)
                         if options['move']:
                             os.rename(movie_path, dest_file)
                         else:

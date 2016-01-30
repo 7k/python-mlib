@@ -57,7 +57,7 @@ class Command(BaseCommand):
                 m = re.match(RE_SHOW, dir_name)
             if m:
                 logging.debug(m.groups())
-                show = m.group(1).replace('_', ' ').rstrip().title()
+                show = m.group(1).replace('_', ' ').rstrip(' -').title()
                 season = int(m.group(2))
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)

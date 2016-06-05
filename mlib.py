@@ -14,7 +14,7 @@ DEFAULTS = {
 }
 
 RE_MOVIES = re.compile('.*\.(mov|MOV|avi|AVI|mpg|MPG|mp4|MP4|mkv|MKV)$')
-RE_MOVIES_EXCLUDED = re.compile('Incomplete Downloads')
+RE_MOVIES_EXCLUDED = re.compile('(Incomplete Downloads|\.AppleDouble)')
 
 
 def get_movies(searchdir):

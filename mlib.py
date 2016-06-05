@@ -14,13 +14,19 @@ DEFAULTS = {
 }
 
 RE_MOVIES = re.compile('.*\.(mov|MOV|avi|AVI|mpg|MPG|mp4|MP4|mkv|MKV)$')
+RE_MOVIES_EXCLUDED = re.compile('Incomplete Downloads')
 
 
 def get_movies(searchdir):
     matches = []
     for root, _dirnames, filenames in os.walk(searchdir):
         for filename in filter(lambda n: RE_MOVIES.match(n), filenames):
-            matches.append(os.path.join(root, filename))
+            if filename.startswith('._'):
+                continue
+            match = os.path.join(root, filename)
+            if RE_MOVIES_EXCLUDED.search(match):
+                continue
+            matches.append(match)
     return matches
 
 

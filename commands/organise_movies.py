@@ -47,7 +47,8 @@ class Command(BaseCommand):
 
         for movie_path in paths:
             count += 1
-            logging.info('%5d/%d: Processing `%s\'', count, count_max, movie_path)
+            prefix = '%5d/%d: ' % (count, count_max)
+            logging.info('%sProcessing `%s\'', prefix, movie_path)
             movie_name = os.path.basename(movie_path)
             name = movie_name.replace('.', ' ')
             dir_name = os.path.basename(os.path.dirname(movie_path))
@@ -62,20 +63,25 @@ class Command(BaseCommand):
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)
                 try:
+                    dest_file = os.path.join(season_path, movie_name)
+                    logging.debug('%sDestination path: %s', prefix, dest_file)
+
+                    if os.path.exists(dest_file):
+                        src_stat = os.stat(movie_path)
+                        dst_stat = os.stat(dest_file)
+                        if src_stat.st_size == dst_stat.st_size:
+                            logging.info('%s%s already exists', prefix, dest_file)
+                            continue
                     if options['dry_run']:
-                        logging.debug('Skipped creation of directory "%s"', season_path)
+                        logging.debug('%sSkipped creation of directory "%s"',
+                                      prefix, season_path)
                     else:
                         if not os.path.exists(season_path):
                             logging.debug('Creating directory %s', season_path)
                             os.makedirs(season_path)
-                        dest_file = os.path.join(season_path, movie_name)
-                        logging.debug('Destination path: %s', dest_file)
                         if options['move']:
                             os.rename(movie_path, dest_file)
                         else:
-                            if os.path.exists(dest_file):
-                                logging.info('%s already exists', dest_file)
-                            else:
-                                shutil.copy(movie_path, dest_file)
+                            shutil.copy(movie_path, dest_file)
                 except Exception as e:
                     logging.error(e)

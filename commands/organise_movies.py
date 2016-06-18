@@ -41,6 +41,8 @@ class Command(BaseCommand):
                                music=options['music'],
                                movies=options['movies'])
         paths = mlib.get_movies(searchdir)
+        transferred = 0
+        failed = 0
         count = 0
         count_max = len(paths)
         logging.info('Found %d movie files', count_max)
@@ -83,5 +85,10 @@ class Command(BaseCommand):
                             os.rename(movie_path, dest_file)
                         else:
                             shutil.copy(movie_path, dest_file)
+                        transferred += 1
                 except Exception as e:
                     logging.error(e)
+                    failed += 1
+
+        logging.info('Transferred %d, failed %d out of %d',
+                     transferred, failed, count_max)

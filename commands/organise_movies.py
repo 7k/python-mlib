@@ -14,7 +14,7 @@ from . import BaseCommand, CommandError
 import mlib
 
 
-RE_SHOW = r'(.+)-? [Ss]?([0-9]{1,2})[Eex]([0-9]{1,2})'
+RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2})[ex]([0-9]{1,2})'
 
 
 class Command(BaseCommand):
@@ -52,15 +52,23 @@ class Command(BaseCommand):
             prefix = '%5d/%d: ' % (count, count_max)
             logging.info('%sProcessing `%s\'', prefix, movie_path)
             movie_name = os.path.basename(movie_path)
-            name = movie_name.replace('.', ' ')
+            name = re.sub('(?<=[^ .].)\.', ' ', movie_name)
+            name = re.sub('(?<=[0-9])\.', ' ', name)
+            name = re.sub('(?<= i)\.', ' ', name, re.I)
             dir_name = os.path.basename(os.path.dirname(movie_path))
-            dir_name = dir_name.replace('.', ' ')
-            m = re.match(RE_SHOW, name)
+            dir_name = re.sub('(?<=[^ .].)\.', ' ', dir_name)
+            dir_name = re.sub('(?<=[0-9])\.', ' ', dir_name)
+            dir_name = re.sub('(?<= i)\.', ' ', dir_name, re.I)
+            m = re.match(RE_SHOW, name, re.I)
             if not m:
-                m = re.match(RE_SHOW, dir_name)
+                m = re.match(RE_SHOW, dir_name, re.I)
             if m:
                 logging.debug(m.groups())
-                show = m.group(1).replace('_', ' ').rstrip(' -').title()
+                show = m.group(1).replace('_', ' ').rstrip(' -')
+                if len(show) > 2 and show[-2] == '.':
+                    show = show + '.'
+                if show == show.lower():
+                    show = show.title()
                 season = int(m.group(2))
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)

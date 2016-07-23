@@ -7,6 +7,7 @@ import logging
 from optparse import make_option
 import os
 import re
+import requests
 import shutil
 import sys
 
@@ -15,6 +16,8 @@ import mlib
 
 
 RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2})[ex]([0-9]{1,2})'
+TMDB_API_BASE = 'https://api.themoviedb.org/3/'
+TMDB_API_SEARCH = TMDB_API_BASE + 'search/tv'
 
 
 class Command(BaseCommand):
@@ -29,13 +32,44 @@ class Command(BaseCommand):
                     "to the affected change."),
         make_option("-m", "--move", dest="move", action="store_true",
                     help="Move files instead of copying."),
+        make_option("-a", "--api-key", dest="api_key", default=None,
+                    help="The API key for TMDB."),
+        make_option("", "--memcache-server", dest="memcache_server",
+                    default="127.0.0.1",
+                    help="The Memcache server address/host name"),
     )
+
+    def __init__(self):
+        self.cache = None
+
+    def sanitise_show_name(self, name, api_key=None):
+        ret = None
+        name = re.sub('[ ._]', '+', name)
+        name = re.sub('(?<=[^0-9])(19|2[0-9])[0-9][0-9]$', '', name)
+        name = name.lower()
+        data = self.cache.get(name)
+        if not data and api_key:
+            r = requests.get(TMDB_API_SEARCH,
+                             params={'query': name, 'api_key': api_key})
+            if r.status_code == 200:
+                data = r.json()
+                self.cache.set(name, data)
+        if data and 0 < data['total_results'] < 5:
+            ret = data['results'][0]['name']
+            logging.debug('%s -> %s', name, ret)
+        return ret
 
     def handle(self, *args, **options):
         if len(args) < 2:
             raise CommandError('Not enough arguments')
         librarydir = args[0]
         searchdir = args[1]
+
+        try:
+            import memcache
+            self.cache = memcache.Client([options.get('memcache_server')])
+        except ImportError:
+            self.cache = dict()
 
         library = mlib.Library(librarydir,
                                music=options['music'],
@@ -52,23 +86,27 @@ class Command(BaseCommand):
             prefix = '%5d/%d: ' % (count, count_max)
             logging.info('%sProcessing `%s\'', prefix, movie_path)
             movie_name = os.path.basename(movie_path)
-            name = re.sub('(?<=[^ .].)\.', ' ', movie_name)
-            name = re.sub('(?<=[0-9])\.', ' ', name)
-            name = re.sub('(?<= i)\.', ' ', name, re.I)
             dir_name = os.path.basename(os.path.dirname(movie_path))
-            dir_name = re.sub('(?<=[^ .].)\.', ' ', dir_name)
-            dir_name = re.sub('(?<=[0-9])\.', ' ', dir_name)
-            dir_name = re.sub('(?<= i)\.', ' ', dir_name, re.I)
-            m = re.match(RE_SHOW, name, re.I)
+            m = re.match(RE_SHOW, movie_name, re.I)
             if not m:
                 m = re.match(RE_SHOW, dir_name, re.I)
             if m:
                 logging.debug(m.groups())
                 show = m.group(1).replace('_', ' ').rstrip(' -')
-                if len(show) > 2 and show[-2] == '.':
-                    show = show + '.'
-                if show == show.lower():
-                    show = show.title()
+                s = self.sanitise_show_name(show, api_key=options['api_key'])
+                if not s:
+                    show = re.sub('(?<=[^ .].)\.', ' ', show)
+                    show = re.sub('(?<=[0-9])\.', ' ', show)
+                    show = re.sub('(?<= i)\.', ' ', show, re.I)
+                    show = show.replace('_', ' ').rstrip(' -')
+                    if len(show) > 2 and show[-2] == '.':
+                        show += '.'
+                    if show == show.lower():
+                        show = show.title()
+                else:
+                    show = s
+
+                logging.debug('%sShow name: %s', prefix, show)
                 season = int(m.group(2))
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)

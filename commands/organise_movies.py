@@ -44,19 +44,30 @@ class Command(BaseCommand):
 
     def sanitise_show_name(self, name, api_key=None):
         ret = None
-        name = re.sub('[ ._]', '+', name)
-        name = re.sub('(?<=[^0-9])(19|2[0-9])[0-9][0-9]$', '', name)
-        name = name.lower()
-        data = self.cache.get(name)
-        if not data and api_key:
-            r = requests.get(TMDB_API_SEARCH,
-                             params={'query': name, 'api_key': api_key})
-            if r.status_code == 200:
-                data = r.json()
-                self.cache.set(name, data)
-        if data and 0 < data['total_results'] < 5:
-            ret = data['results'][0]['name']
-            logging.debug('%s -> %s', name, ret)
+        if api_key:
+            name = re.sub('[ ._]', '+', name)
+            name = re.sub('(?<=[^0-9])(19|2[0-9])[0-9][0-9]$', '', name)
+            name = name.lower()
+            data = self.cache.get(name)
+            if not data and api_key:
+                r = requests.get(TMDB_API_SEARCH,
+                                 params={'query': name, 'api_key': api_key})
+                if r.status_code == 200:
+                    data = r.json()
+                    self.cache.set(name, data)
+            if data and 0 < data['total_results'] < 5:
+                ret = data['results'][0]['name']
+
+        if not ret:
+            ret = re.sub('(?<=[^ .].)\.', ' ', ret)
+            ret = re.sub('(?<=[0-9])\.', ' ', ret)
+            ret = re.sub('(?<= i)\.', ' ', ret, re.I)
+            ret = ret.replace('_', ' ').rstrip(' -')
+            if len(ret) > 2 and ret[-2] == '.':
+                ret += '.'
+            if ret == ret.lower():
+                ret = ret.title()
+        logging.debug('%s -> %s', name, ret)
         return ret
 
     def handle(self, *args, **options):
@@ -93,19 +104,7 @@ class Command(BaseCommand):
             if m:
                 logging.debug(m.groups())
                 show = m.group(1).replace('_', ' ').rstrip(' -')
-                s = self.sanitise_show_name(show, api_key=options['api_key'])
-                if not s:
-                    show = re.sub('(?<=[^ .].)\.', ' ', show)
-                    show = re.sub('(?<=[0-9])\.', ' ', show)
-                    show = re.sub('(?<= i)\.', ' ', show, re.I)
-                    show = show.replace('_', ' ').rstrip(' -')
-                    if len(show) > 2 and show[-2] == '.':
-                        show += '.'
-                    if show == show.lower():
-                        show = show.title()
-                else:
-                    show = s
-
+                show = self.sanitise_show_name(show, api_key=options['api_key'])
                 logging.debug('%sShow name: %s', prefix, show)
                 season = int(m.group(2))
                 episode = int(m.group(3))

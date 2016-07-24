@@ -45,21 +45,23 @@ class Command(BaseCommand):
     def sanitise_show_name(self, name, api_key=None):
         ret = None
         if api_key:
-            name = re.sub('[ ._]', '+', name)
-            name = re.sub('(?<=[^0-9])(19|2[0-9])[0-9][0-9]$', '', name)
-            name = name.lower()
-            data = self.cache.get(name)
+            term = re.sub('[ ._]', '+', name)
+            term = re.sub('(?<=[^0-9])(19|2[0-9])[0-9][0-9]$', '', term)
+            term = term.lower()
+            data = self.cache.get(term)
             if not data and api_key:
                 r = requests.get(TMDB_API_SEARCH,
-                                 params={'query': name, 'api_key': api_key})
+                                 params={'query': term, 'api_key': api_key})
                 if r.status_code == 200:
                     data = r.json()
-                    self.cache.set(name, data)
+                    self.cache.set(term, data)
             if data and 0 < data['total_results'] < 5:
                 ret = data['results'][0]['name']
+            else:
+                logging.debug('Too many results: %s', data['total_results'])
 
         if not ret:
-            ret = re.sub('(?<=[^ .].)\.', ' ', ret)
+            ret = re.sub('(?<=[^ .].)\.', ' ', name)
             ret = re.sub('(?<=[0-9])\.', ' ', ret)
             ret = re.sub('(?<= i)\.', ' ', ret, re.I)
             ret = ret.replace('_', ' ').rstrip(' -')

@@ -112,7 +112,7 @@ class Command(BaseCommand):
                 episode = int(m.group(3))
                 season_path = library.path_for_tv_season(show, season)
                 try:
-                    dest_file = os.path.join(season_path, movie_name)
+                    dest_file = os.path.join(season_path, movie_name.decode('utf8'))
                     logging.debug('%sDestination path: %s', prefix, dest_file)
 
                     if os.path.exists(dest_file):
@@ -134,7 +134,9 @@ class Command(BaseCommand):
                             shutil.copy(movie_path, dest_file)
                         transferred += 1
                 except Exception as e:
-                    logging.error(e)
+                    import traceback
+                    logging.exception('%r: %s', e, movie_path)
+                    traceback.print_exc()
                     failed += 1
 
         logging.info('Transferred %d, failed %d out of %d',

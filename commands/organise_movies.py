@@ -15,7 +15,7 @@ from . import BaseCommand, CommandError
 import mlib
 
 
-RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2})[ex]{1,2}([0-9]{1,2})'
+RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2}|[12][0-9]{3})[ex.]{1,2}([0-9]{1,2}|[01][0-9]\.[0-3][0-9])'
 RE_COMPLETE_SEASON = r'(.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .]([0-9]{1,2})'
 TMDB_API_BASE = 'https://api.themoviedb.org/3/'
 TMDB_API_SEARCH = TMDB_API_BASE + 'search/tv'
@@ -56,7 +56,11 @@ class Command(BaseCommand):
                 if r.status_code == 200:
                     data = r.json()
                     self.cache.set(term, data)
-            if data and 0 < data['total_results'] < 5:
+            popular = 0
+            for result in data['results']:
+                if result['popularity'] > 2.0:
+                    popular += 1
+            if data and 0 < data['total_results'] < 25 and popular < 5:
                 ret = data['results'][0]['name']
             else:
                 logging.debug('Too many results: %s', data['total_results'])

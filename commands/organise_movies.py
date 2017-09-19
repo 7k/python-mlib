@@ -16,6 +16,7 @@ import mlib
 
 
 RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2}|[12][0-9]{3})[ex.]{1,2}([0-9]{1,2}|[01][0-9]\.[0-3][0-9])'
+RE_SHOW_BBC = r'(.+)-?[ .]([12][0-9]{3})[x.]([01][0-9]\.[0-3][0-9])'
 RE_COMPLETE_SEASON = r'(.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .]([0-9]{1,2})'
 TMDB_API_BASE = 'https://api.themoviedb.org/3/'
 TMDB_API_SEARCH = TMDB_API_BASE + 'search/tv'
@@ -119,6 +120,10 @@ class Command(BaseCommand):
                 m = re.match(RE_SHOW, movie_name, re.I)
                 if not m:
                     m = re.match(RE_SHOW, dir_name, re.I)
+                if not m:
+                    m = re.match(RE_SHOW_BBC, movie_name, re.I)
+                if not m:
+                    m = re.match(RE_SHOW_BBC, dir_name, re.I)
                 if m:
                     show = m.group(1)
                     season = int(m.group(2))

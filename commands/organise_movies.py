@@ -109,28 +109,37 @@ class Command(BaseCommand):
             show = None
             season = None
             episode = None
-            m = re.match(RE_COMPLETE_SEASON, dir_name, re.I)
-            if m:
-                show = m.group(1)
-                season = int(m.group(2))
-                m = re.match(RE_SHOW, movie_name, re.I)
-                if m and int(m.group(2)) == season:
-                    episode = int(m.group(3))
-            else:
-                m = re.match(RE_SHOW, movie_name, re.I)
-                if not m:
-                    m = re.match(RE_SHOW, dir_name, re.I)
-                if not m:
-                    m = re.match(RE_SHOW_BBC, movie_name, re.I)
-                if not m:
-                    m = re.match(RE_SHOW_BBC, dir_name, re.I)
+            dest_file = movie_name.decode('utf8')
+            fmt = None
+
+            m = re.match(RE_SHOW, movie_name, re.I)
+            if not m:
+                m = re.match(RE_SHOW_BBC, movie_name, re.I)
+            if not m:
+                m = re.match(RE_SHOW, dir_name, re.I)
                 if m:
-                    show = m.group(1)
+                    fmt = '{} s{}e{} - {}'
+            if not m:
+                m = re.match(RE_SHOW_BBC, dir_name, re.I)
+                if m:
+                    fmt = '{} {}.{} - {}'
+            if m:
+                if fmt:
+                    dest_file = fmt.format(m.group(1), m.group(2), m.group(3), dest_file)
+                show = m.group(1).replace('_', ' ').rstrip(' -')
+                season = int(m.group(2))
+                episode = int(m.group(3).replace('.', ''))
+            else:
+                m = re.match(RE_COMPLETE_SEASON, dir_name, re.I)
+                if m:
+                    show = m.group(1).replace('_', ' ').rstrip(' -')
                     season = int(m.group(2))
-                    episode = int(m.group(3).replace('.', ''))
+                    m = re.match(RE_SHOW, movie_name, re.I)
+                    if m and int(m.group(2)) == season:
+                        episode = int(m.group(3))
+                        dest_file = '{} s{:02d}e{:02d} - {}'.format(show, season, episode, dest_file)
+
             if show and season and episode:
-                logging.debug(m.groups())
-                show = show.replace('_', ' ').rstrip(' -')
                 show = self.sanitise_show_name(show, api_key=options['api_key'])
                 logging.debug('%sShow name: %s, Season: %s, Episode: %s', prefix, show, season, episode)
                 season_path = library.path_for_tv_season(show, season)

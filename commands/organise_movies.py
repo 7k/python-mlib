@@ -15,7 +15,8 @@ from . import BaseCommand, CommandError
 import mlib
 
 
-RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2})[ex]([0-9]{1,2})'
+RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2})[ex]{1,2}([0-9]{1,2})'
+RE_COMPLETE_SEASON = r'(.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .]([0-9]{1,2})'
 TMDB_API_BASE = 'https://api.themoviedb.org/3/'
 TMDB_API_SEARCH = TMDB_API_BASE + 'search/tv'
 
@@ -100,16 +101,29 @@ class Command(BaseCommand):
             logging.info('%sProcessing `%s\'', prefix, movie_path)
             movie_name = os.path.basename(movie_path)
             dir_name = os.path.basename(os.path.dirname(movie_path))
-            m = re.match(RE_SHOW, movie_name, re.I)
-            if not m:
-                m = re.match(RE_SHOW, dir_name, re.I)
+            show = None
+            season = None
+            episode = None
+            m = re.match(RE_COMPLETE_SEASON, dir_name, re.I)
             if m:
-                logging.debug(m.groups())
-                show = m.group(1).replace('_', ' ').rstrip(' -')
-                show = self.sanitise_show_name(show, api_key=options['api_key'])
-                logging.debug('%sShow name: %s', prefix, show)
+                show = m.group(1)
                 season = int(m.group(2))
-                episode = int(m.group(3))
+                m = re.match(RE_SHOW, movie_name, re.I)
+                if m and int(m.group(2)) == season:
+                    episode = int(m.group(3))
+            else:
+                m = re.match(RE_SHOW, movie_name, re.I)
+                if not m:
+                    m = re.match(RE_SHOW, dir_name, re.I)
+                if m:
+                    show = m.group(1)
+                    season = int(m.group(2))
+                    episode = int(m.group(3))
+            if show and season and episode:
+                logging.debug(m.groups())
+                show = show.replace('_', ' ').rstrip(' -')
+                show = self.sanitise_show_name(show, api_key=options['api_key'])
+                logging.debug('%sShow name: %s, Season: %s, Episode: %s', prefix, show, season, episode)
                 season_path = library.path_for_tv_season(show, season)
                 try:
                     dest_file = os.path.join(season_path, movie_name.decode('utf8'))

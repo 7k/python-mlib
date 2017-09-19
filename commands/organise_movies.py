@@ -127,7 +127,7 @@ class Command(BaseCommand):
                 if m:
                     show = m.group(1)
                     season = int(m.group(2))
-                    episode = int(m.group(3).replace('.', '')
+                    episode = int(m.group(3).replace('.', ''))
             if show and season and episode:
                 logging.debug(m.groups())
                 show = show.replace('_', ' ').rstrip(' -')

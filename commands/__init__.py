@@ -79,8 +79,8 @@ class BaseCommand(object):
             self.execute(*args, **options.__dict__)
         except Exception as e:
             if options.traceback:
-                self.stderr.write(traceback.format_exc())
-            self.stderr.write('%s: %s' % (e.__class__.__name__, e))
+                sys.stderr.write(traceback.format_exc())
+            sys.stderr.write('%s: %s' % (e.__class__.__name__, e))
             sys.exit(1)
 
     def execute(self, *args, **options):

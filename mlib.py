@@ -11,6 +11,7 @@ import sys
 DEFAULTS = {
     'movies': 'Movies',
     'music': 'Music',
+    'tv': 'TV',
 }
 
 RE_MOVIES = re.compile('.*\.(mov|MOV|avi|AVI|mpg|MPG|mp4|MP4|mkv|MKV)$')
@@ -31,17 +32,28 @@ def get_movies(searchdir):
 
 
 class Library:
-    def __init__(self, path, movies=DEFAULTS['music'], music=DEFAULTS['music']):
-        self.path = path
-        self.movies = movies
-        self.music = music
+    def __init__(self,
+                 path,
+                 movies=DEFAULTS['movies'],
+                 music=DEFAULTS['music'],
+                 tv=DEFAULTS['tv']):
+        self.paths = {
+            'base': path,
+            'movies': movies,
+            'music': music,
+            'tv': tv,
+        }
 
     @property
     def movies_path(self):
-        return os.path.join(self.path, self.movies)
+        return os.path.join(self.paths['base'], self.paths['movies'])
+
+    @property
+    def tv_path(self):
+        return os.path.join(self.paths['base'], self.paths['tv'])
 
     def path_for_tv_season(self, show, season):
-        return os.path.join(self.movies_path, show, 'Season %s' % season)
+        return os.path.join(self.tv_path, show, 'Season %s' % season)
 
 
 if __name__ == '__main__':

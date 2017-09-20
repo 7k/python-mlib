@@ -25,6 +25,8 @@ class LibraryCommand(BaseCommand):
 
     def __init__(self):
         self.library = None
+        self.stdout = None
+        self.stderr = None
 
     def execute(self, *args, **options):
         if len(args) < 2:

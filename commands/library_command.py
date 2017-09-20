@@ -1,7 +1,7 @@
 """
 Created on 20 Sep 2017
 
-@author: Takeshi
+@author: Takeshi Kanemoto <tak.kanemoto@gmail.com>
 """
 
 import logging

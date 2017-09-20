@@ -36,7 +36,8 @@ class Library:
                  path,
                  movies=DEFAULTS['movies'],
                  music=DEFAULTS['music'],
-                 tv=DEFAULTS['tv']):
+                 tv=DEFAULTS['tv'],
+                 **kwargs):
         self.paths = {
             'base': path,
             'movies': movies,

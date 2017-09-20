@@ -12,6 +12,7 @@ import shutil
 import sys
 
 from . import BaseCommand, CommandError
+from .utils import LibraryCommand
 import mlib
 
 
@@ -22,16 +23,9 @@ TMDB_API_BASE = 'https://api.themoviedb.org/3/'
 TMDB_API_SEARCH = TMDB_API_BASE + 'search/tv'
 
 
-class Command(BaseCommand):
+class Command(LibraryCommand):
     args = "library_path search_dir"
-    option_list = BaseCommand.option_list + (
-        make_option("", "--music", dest="music", default=mlib.DEFAULTS['music'],
-                    help="The music folder name inside the library."),
-        make_option("", "--movies", dest="movies", default=mlib.DEFAULTS['movies'],
-                    help="The movies folder name inside the library."),
-        make_option("-d", "--dry-run", dest="dry_run", action="store_true",
-                    help="Do everything except actually add the note "
-                    "to the affected change."),
+    option_list = LibraryCommand.option_list + (
         make_option("-m", "--move", dest="move", action="store_true",
                     help="Move files instead of copying."),
         make_option("-a", "--api-key", dest="api_key", default=None,
@@ -42,6 +36,7 @@ class Command(BaseCommand):
     )
 
     def __init__(self):
+        super(Command, self).__init__()
         self.cache = None
 
     def sanitise_show_name(self, name, api_key=None):
@@ -79,10 +74,9 @@ class Command(BaseCommand):
         return ret
 
     def handle(self, *args, **options):
-        if len(args) < 2:
+        if len(args) < 1:
             raise CommandError('Not enough arguments')
-        librarydir = args[0]
-        searchdir = args[1]
+        searchdir = args[0]
 
         try:
             import memcache
@@ -90,9 +84,6 @@ class Command(BaseCommand):
         except ImportError:
             self.cache = dict()
 
-        library = mlib.Library(librarydir,
-                               music=options['music'],
-                               movies=options['movies'])
         paths = mlib.get_movies(searchdir)
         transferred = 0
         failed = 0
@@ -142,7 +133,7 @@ class Command(BaseCommand):
             if show and season and episode:
                 show = self.sanitise_show_name(show, api_key=options['api_key'])
                 logging.debug('%sShow name: %s, Season: %s, Episode: %s', prefix, show, season, episode)
-                season_path = library.path_for_tv_season(show, season)
+                season_path = self.library.path_for_tv_season(show, season)
                 try:
                     dest_file = os.path.join(season_path, movie_name.decode('utf8'))
                     logging.debug('%sDestination path: %s', prefix, dest_file)

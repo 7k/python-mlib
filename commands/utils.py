@@ -29,9 +29,5 @@ class LibraryCommand(BaseCommand):
         self.stderr = None
 
     def execute(self, *args, **options):
-        if len(args) < 2:
-            raise CommandError('Not enough arguments')
-
         self.library = mlib.Library(os.getcwd(), **options)
-
         super(LibraryCommand, self).execute(*args, **options)

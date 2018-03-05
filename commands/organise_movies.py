@@ -16,7 +16,7 @@ from .utils import LibraryCommand
 import mlib
 
 
-RE_SHOW = r'(.+)-?[ .][s\[]?([0-9]{1,2})[ex]{1,2}([0-9]{1,2})'
+RE_SHOW = r'(.+)-?[ ._][s\[]?([0-9]{1,2})[ex]{1,2}([0-9]{1,2})'
 RE_SHOW_BBC = r'(.+)-?[ .]([12][0-9]{3})[x.]([01][0-9]\.[0-3][0-9])'
 RE_COMPLETE_SEASON = r'(.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .]([0-9]{1,2})'
 TMDB_API_BASE = 'https://api.themoviedb.org/3/'

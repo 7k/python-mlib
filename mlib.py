@@ -14,7 +14,7 @@ DEFAULTS = {
     'tv': 'TV',
 }
 
-RE_MOVIES = re.compile('.*\.(mov|MOV|avi|AVI|mpg|MPG|mp4|MP4|mkv|MKV|nfo|srt|smi)$')
+RE_MOVIES = re.compile('.*\.(mov|MOV|avi|AVI|mpg|MPG|mp4|MP4|mkv|MKV|nfo|srt)$')
 RE_MOVIES_EXCLUDED = re.compile('(Incomplete Downloads|\.AppleDouble)')
 
 

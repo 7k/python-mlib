@@ -58,6 +58,7 @@ class Command(LibraryCommand):
                     popular += 1
             if data and 0 < data['total_results'] < 25 and popular < 5:
                 ret = data['results'][0]['name']
+                ret = ret.rstrip(' -?')
             else:
                 logging.debug('Too many results: %s', data['total_results'])
 
@@ -65,7 +66,7 @@ class Command(LibraryCommand):
             ret = re.sub('(?<=[^ .].)\.', ' ', name)
             ret = re.sub('(?<=[0-9])\.', ' ', ret)
             ret = re.sub('(?<= i)\.', ' ', ret, re.I)
-            ret = ret.replace('_', ' ').rstrip(' -')
+            ret = ret.replace('_', ' ').rstrip(' -?')
             if len(ret) > 2 and ret[-2] == '.':
                 ret += '.'
             if ret == ret.lower():

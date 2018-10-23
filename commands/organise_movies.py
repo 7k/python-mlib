@@ -101,7 +101,11 @@ class Command(LibraryCommand):
             show = None
             season = None
             episode = None
-            dest_file = movie_name.decode('utf8')
+            if sys.version_info >= (3,0,0):
+                dest_file = movie_name
+            else:
+                dest_file = movie_name.decode('utf8')
+
             fmt = None
 
             m = re.match(RE_SHOW, movie_name, re.I)
@@ -136,7 +140,10 @@ class Command(LibraryCommand):
                 logging.debug('%sShow name: %s, Season: %s, Episode: %s', prefix, show, season, episode)
                 season_path = self.library.path_for_tv_season(show, season)
                 try:
-                    dest_file = os.path.join(season_path, movie_name.decode('utf8'))
+                    if sys.version_info >= (3,0,0):
+                        dest_file = os.path.join(season_path, movie_name)
+                    else:
+                        dest_file = os.path.join(season_path, movie_name.decode('utf8'))
                     logging.debug('%sDestination path: %s', prefix, dest_file)
 
                     if os.path.exists(dest_file):

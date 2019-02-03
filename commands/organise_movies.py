@@ -16,9 +16,9 @@ from .utils import LibraryCommand
 import mlib
 
 
-RE_SHOW = r'(.+)-?[ ._][s\[]?([0-9]{1,2})[ex]{1,2}([0-9]{1,2})'
-RE_SHOW_BBC = r'(.+)-?[ .]([12][0-9]{3})[x.]([01][0-9]\.[0-3][0-9])'
-RE_COMPLETE_SEASON = r'(.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .]([0-9]{1,2})'
+RE_SHOW = r'(?P<name>.+)-?[ ._]([s\[]?|season\.)(?P<season>[0-9]{1,2})([ex]{1,2}|episode\.)(?P<episode>[0-9]{1,2})'
+RE_SHOW_BBC = r'(?P<name>.+)-?[ .](?P<season>[12][0-9]{3})[x.](?P<episode>[01][0-9]\.[0-3][0-9])'
+RE_COMPLETE_SEASON = r'(?P<name>.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .](?P<season>[0-9]{1,2})'
 TMDB_API_BASE = 'https://api.themoviedb.org/3/'
 TMDB_API_SEARCH = TMDB_API_BASE + 'search/tv'
 
@@ -121,18 +121,18 @@ class Command(LibraryCommand):
                     fmt = '{} {}.{} - {}'
             if m:
                 if fmt:
-                    dest_file = fmt.format(m.group(1), m.group(2), m.group(3), dest_file)
-                show = m.group(1).replace('_', ' ').rstrip(' -')
-                season = int(m.group(2))
-                episode = int(m.group(3).replace('.', ''))
+                    dest_file = fmt.format(m.group('name'), m.group('season'), m.group('episode'), dest_file)
+                show = m.group('name').replace('_', ' ').rstrip(' -')
+                season = int(m.group('season'))
+                episode = int(m.group('episode').replace('.', ''))
             else:
                 m = re.match(RE_COMPLETE_SEASON, dir_name, re.I)
                 if m:
-                    show = m.group(1).replace('_', ' ').rstrip(' -')
-                    season = int(m.group(2))
+                    show = m.group('name').replace('_', ' ').rstrip(' -')
+                    season = int(m.group('season'))
                     m = re.match(RE_SHOW, movie_name, re.I)
-                    if m and int(m.group(2)) == season:
-                        episode = int(m.group(3))
+                    if m and int(m.group('season')) == season:
+                        episode = int(m.group('episode'))
                         dest_file = '{} s{:02d}e{:02d} - {}'.format(show, season, episode, dest_file)
 
             if show and season and episode:

@@ -52,7 +52,10 @@ class Command(LibraryCommand):
                                  params={'query': term, 'api_key': api_key})
                 if r.status_code == 200:
                     data = r.json()
-                    self.cache.set(term, data)
+                    if hasattr(self.cache, 'set'):
+                        self.cache.set(term, data)
+                    else:
+                        self.cache[term] = data
             popular = 0
             for result in data['results']:
                 if result['popularity'] > 2.0:
@@ -113,7 +116,7 @@ class Command(LibraryCommand):
             if not m:
                 m = re.match(RE_SHOW_ALT1, movie_name, re.I)
                 if m:
-                    fmt = '{} s{}e{} - {}'
+                    fmt = '{} s{:02d}e{:02d} - {}'
             if not m:
                 m = re.match(RE_SHOW_BBC, movie_name, re.I)
             if not m:
@@ -125,11 +128,11 @@ class Command(LibraryCommand):
                 if m:
                     fmt = '{} {}.{} - {}'
             if m:
-                if fmt:
-                    dest_file = fmt.format(m.group('name'), m.group('season'), m.group('episode'), dest_file)
                 show = m.group('name').replace('_', ' ').rstrip(' -')
                 season = int(m.group('season'))
                 episode = int(m.group('episode').replace('.', ''))
+                if fmt:
+                    dest_file = fmt.format(show, season, episode, dest_file)
             else:
                 m = re.match(RE_COMPLETE_SEASON, dir_name, re.I)
                 if m:
@@ -146,9 +149,9 @@ class Command(LibraryCommand):
                 season_path = self.library.path_for_tv_season(show, season)
                 try:
                     if sys.version_info >= (3,0,0):
-                        dest_file = os.path.join(season_path, movie_name)
+                        dest_file = os.path.join(season_path, dest_file)
                     else:
-                        dest_file = os.path.join(season_path, movie_name.decode('utf8'))
+                        dest_file = os.path.join(season_path, dest_file.decode('utf8'))
                     logging.debug('%sDestination path: %s', prefix, dest_file)
 
                     if os.path.exists(dest_file):

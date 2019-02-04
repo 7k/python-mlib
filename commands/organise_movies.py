@@ -16,7 +16,8 @@ from .utils import LibraryCommand
 import mlib
 
 
-RE_SHOW = r'(?P<name>((?!season).)+)-?[ ._]([s\[]?|season[ .])(?P<season>[0-9]{1,2})([ex]{1,2}|[ .]episode[ .])(?P<episode>[0-9]{1,2})'
+RE_SHOW = r'(?P<name>.+)-?[ ._][s\[]?(?P<season>[0-9]{1,2})[ex]{1,2}(?P<episode>[0-9]{1,2})'
+RE_SHOW_ALT1 = r'(?P<name>((?!season).)+)-?[ ._]season[ .](?P<season>[0-9]{1,2})[ .]episode[ .](?P<episode>[0-9]{1,2})'
 RE_SHOW_BBC = r'(?P<name>.+)-?[ .](?P<season>[12][0-9]{3})[x.](?P<episode>[01][0-9]\.[0-3][0-9])'
 RE_COMPLETE_SEASON = r'(?P<name>.+)-?[ .thea]{1,4}[ .]complete[ .]season[ .](?P<season>[0-9]{1,2})'
 TMDB_API_BASE = 'https://api.themoviedb.org/3/'
@@ -109,6 +110,10 @@ class Command(LibraryCommand):
             fmt = None
 
             m = re.match(RE_SHOW, movie_name, re.I)
+            if not m:
+                m = re.match(RE_SHOW_ALT1, movie_name, re.I)
+                if m:
+                    fmt = '{} s{}e{} - {}'
             if not m:
                 m = re.match(RE_SHOW_BBC, movie_name, re.I)
             if not m:
